@@ -35,14 +35,20 @@ public:
 
     void advance()
     {
+
         pos++;
+
         // Standard ensure position does not exceed text length
-        if(pos < text.length())
+        if(pos < text.size())
+        {
             currentChar = text[pos];
+        }
         else
-            currentChar = '\0';// Initially I wanted this to be NULL, but this is recommended fix
+            currentChar = '\0';
+
+
     }
-/*
+
     std::string makeTokens()
     {
         std::string tokens;
@@ -113,39 +119,45 @@ public:
         return tokens;
 
     }
-*/
-    /*
+
+
     std::string makeNumber()
     {
+        bool inDigits = true;
         int dotCount = 0;
         std::string numString = "";
+        /*
+        for(int i = 0; i< sTest.size(); i++)
+        {
+            {
+                for(auto x:test)
+                    if(sTest[i] == x)
+                    {
+                        cout << x << endl;
+                    }
+            }
+
+        }
+
 
         while(currentChar != '\0' && )
-    }
 */
+        return "1";
+    }
+
+
+
 };
 
 int main()
 {
 
-    std::vector<char> test;
-    test.push_back('0');
-    test.push_back('1');
+    cout << "Enter Expression" << endl;
+    std::string exp;
+    cin >> exp;
 
-    std::string sTest = "10a11a1";
-
-    for(auto x:test)
-    {
-        for(int i = 0; i< sTest.size(); i++)
-        {
-            if(sTest[i] == x)
-            {
-                cout << "found one" << endl;
-            }
-        }
-
-    }
-
+    Lexer lex(exp);
+    cout << lex.makeTokens();
 
     return 0;
 }
