@@ -29,7 +29,6 @@ public:
     {
         text = Text;
         pos = -1;
-        currentChar = '\0';
         advance();
     }
 
@@ -43,8 +42,7 @@ public:
         {
             currentChar = text[pos];
         }
-        else
-            currentChar = '\0';
+
 
 
     }
@@ -53,11 +51,11 @@ public:
     {
         std::string tokens;
 
-        while(currentChar != '\0')
+        while(pos < text.size())
         {
             switch(currentChar)
             {
-            case '\t':
+            case ' ':
                 advance();
                 break;
             case '+':
@@ -154,8 +152,7 @@ int main()
 
     cout << "Enter Expression" << endl;
     std::string exp;
-    cin >> exp;
-
+    std::getline(std::cin, exp);
     Lexer lex(exp);
     cout << lex.makeTokens();
 
