@@ -1,0 +1,26 @@
+# Fun project: Custom Tsundere Language
+Based on Inda Karane, also some inspiration from 
+shitposting boards.
+
+# General Specs
+1. Will be coded in C++
+2. Interpreted vs Compiled vs Transcompiled to C++?
+
+# Resources
+1. https://www.youtube.com/watch?v=Eythq9848Fg
+2. Create Your Own Programming Language - macournoyer@gmail.com
+3. 构建你自己的Lisp - Daniel Holden
+4. Build Your Own Programming Language - Clinton L. Jeffery
+
+# Initial Theory
+
+# The four parts of a language
+1. Lexer
+2. Parser
+3. Runtime model
+4. Interpreter
+
+# Lexer
+Goes through input character by character and break into tokens.
+I could use FLEX, or another (grammar generator?), instead I will do it 
+manually.
