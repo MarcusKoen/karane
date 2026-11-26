@@ -16,6 +16,39 @@ class Token
 
 };
 
+class Position
+{
+public:
+    int index, lineNum, colNum;
+    //fileName
+    //fileText
+    Position(int i, int l, int c)
+    {
+        index = i;
+        lineNum = l;
+        colNum = c;
+    }
+
+    void advance(char currentChar)
+    {
+        index++;
+        colNum++;
+
+        if(currentChar == '\n')
+        {
+            lineNum++;
+            colNum = 0;
+        }
+    }
+
+    //WTF?
+    Position copy()
+    {
+        return Position(index, lineNum, colNum);
+    }
+
+};
+
 class Error
 {
 public:
@@ -37,42 +70,43 @@ public:
 };
 
 // Sub-class inheriting from Error, have not used OOP in a year, nostalgic
-/*
-class IllegalCharError:Error
+
+class IllegalCharError:public Error
 {
 public:
-    IllegalCharError(std::string d)
+    // I think?
+    IllegalCharError(std::string e, std::string d):Error("Illegal Character",d)
     {
-        details = d;
+
     }
 
 };
-*/
+
 
 class Lexer
 {
 public:
     std::string text;
-    int pos;
+    Position* pos;
     char currentChar;
 
     // Constructor
     Lexer(std::string Text)
     {
         text = Text;
-        pos = -1;
+        pos = new Position(-1,0,1);
         advance();
     }
 
     void advance()
     {
 
-        pos++;
+        pos->advance(currentChar);
 
         // Standard ensure position does not exceed text length
-        if(pos < text.size())
+        if(pos->index < text.size())
         {
-            currentChar = text[pos];
+            currentChar = text[pos->index];
         }
         // else return?
     }
@@ -81,7 +115,7 @@ public:
     {
         std::string tokens;
 
-        while(pos < text.size())
+        while(pos->index < text.size())
         {
             switch(currentChar)
             {
@@ -90,26 +124,37 @@ public:
                 break;
             case '+':
                 tokens.append(TT_PLUS);
+                tokens.append(" ");
                 advance();
                 break;
             case '-':
                 tokens.append(TT_MINUS);
+                tokens.append(" ");
+
                 advance();
                 break;
             case '*':
                 tokens.append(TT_MUL);
+                tokens.append(" ");
+
                 advance();
                 break;
             case '(':
                 tokens.append(TT_LPAREN);
+                tokens.append(" ");
+
                 advance();
                 break;
             case ')':
                 tokens.append(TT_RPAREN);
+                tokens.append(" ");
+
                 advance();
                 break;
             case '/':
                 tokens.append(TT_DIV);
+                tokens.append(" ");
+
                 advance();
                 break;
             case '0':
@@ -143,7 +188,10 @@ public:
                 tokens.append(makeNumber());
                 break;
                 // TODO ERROR CASE
-         //   default:
+            default:
+                //char c = currentChar;
+                advance();
+                cout << "Illegal character";
             }
         }
         return tokens;
@@ -158,7 +206,7 @@ public:
         std::string numString = "";
 
         // I would use .contains but this version of C++ is 16, due to distro constraints on debian g++ version
-        while((pos < text.size()) && (currentChar == '0' ||  currentChar == '1' ||currentChar == '2' ||currentChar == '3' ||
+        while((pos->index < text.size()) && (currentChar == '0' ||  currentChar == '1' ||currentChar == '2' ||currentChar == '3' ||
                                     currentChar == '4' ||currentChar == '5' ||currentChar == '6' ||currentChar == '7' ||currentChar == '8' ||
                                      currentChar == '9' || currentChar == '.'))
         {
@@ -183,12 +231,12 @@ public:
         if(dotCount == 0)
         {
             // Token(TT_INT, int(num_str)
-            return TT_INT + numString +":" ;
+            return TT_INT + ":" +numString +" "  ;
         }
         else
         {
             // same as above TODO float
-            return TT_FLOAT + numString + ":" ;
+            return TT_FLOAT + ":" + numString +" " ;
         }
 
     }
