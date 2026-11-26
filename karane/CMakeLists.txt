@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(karane main.cpp
-    lexer.cpp)
+
+
+)
 
 include(GNUInstallDirs)
 install(TARGETS karane
