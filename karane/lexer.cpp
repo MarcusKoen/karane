@@ -18,7 +18,7 @@ Lexer::Lexer(std::string t)
     advance();
 }
 
-
+/*
 void Lexer::toString()
 {
     for(auto x: tokens)
@@ -27,6 +27,8 @@ void Lexer::toString()
     }
 
 }
+*/
+
 void Lexer::advance()
 {
 
@@ -50,27 +52,31 @@ void Lexer::advance()
                 advance();
                 break;
             case '+':
-                tokens.push_back(TT_PLUS);
+                tokens.push_back({TT_PLUS,"+"});
                 advance();
                 break;
             case '-':
-                tokens.push_back(TT_MINUS);
-                advance();
+                tokens.push_back({TT_MINUS,"-"});
+                                advance();
                 break;
             case '*':
-                tokens.push_back(TT_MUL);
+                tokens.push_back({TT_MUL,"*"});
+
                 advance();
                 break;
             case '(':
-                tokens.push_back(TT_LPAREN);
+                tokens.push_back( {TT_LPAREN,"("});
+
                 advance();
                 break;
             case ')':
-                tokens.push_back(TT_RPAREN);
+                tokens.push_back({TT_RPAREN,")"});
+
                 advance();
                 break;
             case '/':
-                tokens.push_back(TT_DIV);
+                tokens.push_back({TT_DIV,"/"});
+
                 advance();
                 break;
             case '0':
@@ -143,13 +149,15 @@ void Lexer::advance()
         if(dotCount == 0)
         {
             // Token(TT_INT, int(num_str)
-            tokens.push_back(TT_INT);
+            tokens.push_back({TT_INT, numString});
+           // tokens.push_back(TT_INT);
             //return TT_INT + numString +":" ;
         }
         else
         {
             // same as above TODO float
-            tokens.push_back(TT_FLOAT);
+            tokens.push_back({TT_FLOAT, numString});
+            //tokens.push_back(TT_FLOAT);
             // return TT_FLOAT + numString + ":" ;
         }
 

@@ -7,7 +7,7 @@
 class Lexer
 {
 public:
-    std::vector<std::string> tokens;
+    std::vector<std::pair<std::string , std::string >> tokens;
 
     std::string text;
     int pos;

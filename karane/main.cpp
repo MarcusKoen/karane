@@ -48,6 +48,99 @@ public:
 };
 */
 
+class NumberNode
+{
+public:
+    std::pair<std::string, std::string> token;
+    NumberNode(std::pair<std::string, std::string> t)
+    {
+        token = t;
+    }
+
+};
+
+class BinOpNode
+{
+public:
+
+    NumberNode left;
+    std::string opToken;
+    NumberNode right;
+
+    BinOpNode(NumberNode l, std::string o, NumberNode r)
+    {
+        left = l;
+        right  = r;
+        opToken = o;
+  //      opToken = currentToken.first
+    }
+
+
+};
+
+class Parser
+{
+public:
+    std::vector<std::pair<std::string, std::string>> tokens;
+    std::pair<std::string, std::string> currentToken;
+    int tokenIndex;
+
+    Parser(std::vector<std::pair<std::string, std::string>> t)
+    {
+        tokenIndex = -1;
+        advance();
+    }
+
+    std::pair<std::string, std::string> advance()
+    {
+        tokenIndex++;
+
+        if(tokenIndex < tokens.size())
+        {
+            currentToken = tokens[tokenIndex];
+
+        }
+
+        return currentToken;
+    }
+
+    NumberNode F()
+    {
+      //  std::pair<std::string, std::string> token;
+       /// token = currentToken;
+
+        if((currentToken.first == "INT") || (currentToken.first == "FLOAT"))
+        {
+            advance();
+            return NumberNode(currentToken);
+
+        }
+    }
+
+    void T()
+    {
+        NumberNode left = F();
+            while((currentToken.first == "MUL")||(currentToken.first == "DIV"))
+            {
+                //optoken = currentToken.second();
+                NumberNode right = F();
+                left = BinOpNode(left, currentToken.second, right);
+            }
+    }
+
+    void E()
+    {
+
+    }
+
+
+
+
+
+
+
+};
+
 
 
 int main()
@@ -62,16 +155,39 @@ int main()
         return 1;
     }
 
-
+    std::vector<std::pair<std::string, std::string>> list;
 
     while(std::getline(file, exp))
     {
         Lexer lex(exp);
         lex.makeTokens();
-        lex.toString();
+
+        //cout << lex.tokens[0].first;
+
+        for(auto x  : lex.tokens)
+        {
+
+            //cout << x;
+            list.push_back(x);
+            //cout << x.first << ", " << x.second << endl;
+        }
+
+       /* //scan token
+        for(auto x: list)
+        {
+            cout << x.first << ", " << x.second << endl;
+
+
+        }*/
+        //cout << lex.token
+
+
+
+        //lex.toString();
 
     }
-
+  //  cout << list[14].first;
+    std::pair<std::string, std::string> currentToken;
 
 
     return 0;
