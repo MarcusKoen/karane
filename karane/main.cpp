@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 using namespace std;
 
 const std::string TT_INT = "INT";
@@ -16,6 +15,39 @@ class Token
 {
 
 };
+
+class Error
+{
+public:
+    std::string errorName;
+    std::string details;
+
+    Error(std::string e, std::string d)
+    {
+        errorName = e;
+        details = d;
+    }
+
+    void toString()
+    {
+        cout << errorName << endl;
+        cout << details << endl;
+    }
+
+};
+
+// Sub-class inheriting from Error, have not used OOP in a year, nostalgic
+/*
+class IllegalCharError:Error
+{
+public:
+    IllegalCharError(std::string d)
+    {
+        details = d;
+    }
+
+};
+*/
 
 class Lexer
 {
@@ -42,9 +74,7 @@ public:
         {
             currentChar = text[pos];
         }
-
-
-
+        // else return?
     }
 
     std::string makeTokens()
@@ -112,6 +142,8 @@ public:
             case '9':
                 tokens.append(makeNumber());
                 break;
+                // TODO ERROR CASE
+         //   default:
             }
         }
         return tokens;
@@ -124,26 +156,42 @@ public:
         bool inDigits = true;
         int dotCount = 0;
         std::string numString = "";
-        /*
-        for(int i = 0; i< sTest.size(); i++)
+
+        // I would use .contains but this version of C++ is 16, due to distro constraints on debian g++ version
+        while((pos < text.size()) && (currentChar == '0' ||  currentChar == '1' ||currentChar == '2' ||currentChar == '3' ||
+                                    currentChar == '4' ||currentChar == '5' ||currentChar == '6' ||currentChar == '7' ||currentChar == '8' ||
+                                     currentChar == '9' || currentChar == '.'))
         {
+
+            if(currentChar == '.')
             {
-                for(auto x:test)
-                    if(sTest[i] == x)
-                    {
-                        cout << x << endl;
-                    }
+                // Break if there is more than one dot; invalid
+                if(dotCount == 1)
+                    break;
+
+                dotCount++;
+                numString += '.';
             }
+            else
+            {
+                numString += currentChar;
+            }
+            advance();
 
         }
 
+        if(dotCount == 0)
+        {
+            // Token(TT_INT, int(num_str)
+            return TT_INT + numString +":" ;
+        }
+        else
+        {
+            // same as above TODO float
+            return TT_FLOAT + numString + ":" ;
+        }
 
-        while(currentChar != '\0' && )
-*/
-        return "1";
     }
-
-
 
 };
 
@@ -154,7 +202,7 @@ int main()
     std::string exp;
     std::getline(std::cin, exp);
     Lexer lex(exp);
-    cout << lex.makeTokens();
+    cout << lex.makeTokens() << endl;
 
     return 0;
 }
