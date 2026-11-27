@@ -1,194 +1,208 @@
-#include <iostream>
-#include <fstream>
 #include "lexer.h"
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 using namespace std;
 
-
-// Testing this quickly, no value for operators, but values for int and float
-// Might be better later when parsing and interpreting, possible conflict is no value forops
-//vector<std::pair<std::string, float >>;
-
-
-
-class Token
+struct Expr
 {
-
+    virtual ~Expr() = default;
 };
 
-class Error
+using ExprPtr = std::unique_ptr<Expr>;
+
+struct NumberNode : Expr
 {
-public:
-    std::string errorName;
-    std::string details;
-
-    Error(std::string e, std::string d)
-    {
-        errorName = e;
-        details = d;
-    }
-
-    void toString()
-    {
-        cout << errorName << endl;
-        cout << details << endl;
-    }
-
+    TokenPair token;
+    explicit NumberNode(TokenPair t) : token(std::move(t)) {}
 };
 
-// Sub-class inheriting from Error, have not used OOP in a year, nostalgic
-/*
-class IllegalCharError:Error
+struct BinOpNode : Expr
 {
-public:
-    IllegalCharError(std::string d)
-    {
-        details = d;
-    }
+    ExprPtr left;
+    std::string op;
+    ExprPtr right;
 
-};
-*/
-
-class NumberNode
-{
-public:
-    std::pair<std::string, std::string> token;
-    NumberNode(std::pair<std::string, std::string> t)
-    {
-        token = t;
-    }
-
+    BinOpNode(ExprPtr l, std::string o, ExprPtr r)
+        : left(std::move(l)), op(std::move(o)), right(std::move(r)) {}
 };
 
-class BinOpNode
+void printAST(const Expr* node)
 {
-public:
-
-    NumberNode left;
-    std::string opToken;
-    NumberNode right;
-
-    BinOpNode(NumberNode l, std::string o, NumberNode r)
+    if (!node)
     {
-        left = l;
-        right  = r;
-        opToken = o;
-  //      opToken = currentToken.first
+        cout << "<null>";
+        return;
     }
 
-
-};
+    if (const auto* num = dynamic_cast<const NumberNode*>(node))
+    {
+        cout << num->token.second;
+    }
+    else if (const auto* bin = dynamic_cast<const BinOpNode*>(node))
+    {
+        cout << "(" << bin->op << " ";
+        printAST(bin->left.get());
+        cout << " ";
+        printAST(bin->right.get());
+        cout << ")";
+    }
+}
 
 class Parser
 {
 public:
-    std::vector<std::pair<std::string, std::string>> tokens;
-    std::pair<std::string, std::string> currentToken;
-    int tokenIndex;
+    std::vector<TokenPair> tokens;
+    TokenPair currentToken;
+    size_t tokenIndex;
+    bool hasError = false;
 
-    Parser(std::vector<std::pair<std::string, std::string>> t)
+    explicit Parser(std::vector<TokenPair> t)
+        : tokens(std::move(t)), tokenIndex(0)
     {
-        tokenIndex = -1;
-        advance();
+        if (!tokens.empty())
+        {
+            currentToken = tokens[0];
+        }
+        else
+        {
+            currentToken = {"EOF", ""};
+        }
     }
 
-    std::pair<std::string, std::string> advance()
+    TokenPair advance()
     {
         tokenIndex++;
-
-        if(tokenIndex < tokens.size())
+        if (tokenIndex < tokens.size())
         {
             currentToken = tokens[tokenIndex];
-
         }
-
+        else
+        {
+            currentToken = {"EOF", ""};
+        }
         return currentToken;
     }
 
-    NumberNode F()
+    ExprPtr parse()
     {
-      //  std::pair<std::string, std::string> token;
-       /// token = currentToken;
-
-        if((currentToken.first == "INT") || (currentToken.first == "FLOAT"))
+        ExprPtr root = E();
+        if (!hasError && currentToken.first != "EOF")
         {
-            advance();
-            return NumberNode(currentToken);
-
+            cerr << "Syntax error: unexpected token '" << currentToken.second << "'\n";
+            hasError = true;
         }
+        return root;
     }
 
-    void T()
+    // Factor: '(' E ')' | INT | FLOAT
+    ExprPtr F()
     {
-        NumberNode left = F();
-            while((currentToken.first == "MUL")||(currentToken.first == "DIV"))
+        if (hasError)
+        {
+            return nullptr;
+        }
+
+        if (currentToken.first == "LPAREN")
+        {
+            advance(); // consume '('
+            ExprPtr inner = E();
+            if (hasError)
             {
-                //optoken = currentToken.second();
-                NumberNode right = F();
-                left = BinOpNode(left, currentToken.second, right);
+                return nullptr;
             }
+
+            if (currentToken.first != "RPAREN")
+            {
+                cerr << "Syntax error: expected ')'\n";
+                hasError = true;
+                return nullptr;
+            }
+
+            advance(); // consume ')'
+            return inner;
+        }
+
+        if ((currentToken.first == "INT") || (currentToken.first == "FLOAT"))
+        {
+            TokenPair savedToken = currentToken;
+            advance();
+            return std::make_unique<NumberNode>(savedToken);
+        }
+
+        cerr << "Syntax error: expected number or '('\n";
+        hasError = true;
+        return nullptr;
     }
 
-    void E()
+    // Term: F (('MUL' | 'DIV') F)*
+    ExprPtr T()
     {
-
+        ExprPtr left = F();
+        while (!hasError && ((currentToken.first == "MUL") || (currentToken.first == "DIV")))
+        {
+            std::string opToken = currentToken.first;
+            advance();
+            ExprPtr right = F();
+            if (hasError)
+            {
+                return nullptr;
+            }
+            left = std::make_unique<BinOpNode>(std::move(left), opToken, std::move(right));
+        }
+        return left;
     }
 
-
-
-
-
-
-
+    // Expression: T (('PLUS' | 'MINUS') T)*
+    ExprPtr E()
+    {
+        ExprPtr left = T();
+        while (!hasError && ((currentToken.first == "PLUS") || (currentToken.first == "MINUS")))
+        {
+            std::string opToken = currentToken.first;
+            advance();
+            ExprPtr right = T();
+            if (hasError)
+            {
+                return nullptr;
+            }
+            left = std::make_unique<BinOpNode>(std::move(left), opToken, std::move(right));
+        }
+        return left;
+    }
 };
-
-
 
 int main()
 {
-
     std::string exp;
     std::ifstream file("test.k");
 
-    if(!file.is_open())
+    if (!file.is_open())
     {
-        cout << "Not open" << endl;
+        cout << "Not open\n";
         return 1;
     }
 
-    std::vector<std::pair<std::string, std::string>> list;
-
-    while(std::getline(file, exp))
+    while (std::getline(file, exp))
     {
         Lexer lex(exp);
         lex.makeTokens();
 
-        //cout << lex.tokens[0].first;
-
-        for(auto x  : lex.tokens)
+        if (!lex.tokens.empty())
         {
-
-            //cout << x;
-            list.push_back(x);
-            //cout << x.first << ", " << x.second << endl;
+            Parser parser(lex.tokens);
+            ExprPtr root = parser.parse();
+            if (!parser.hasError && root)
+            {
+                printAST(root.get());
+                cout << "\n";
+            }
         }
-
-       /* //scan token
-        for(auto x: list)
-        {
-            cout << x.first << ", " << x.second << endl;
-
-
-        }*/
-        //cout << lex.token
-
-
-
-        //lex.toString();
-
     }
-  //  cout << list[14].first;
-    std::pair<std::string, std::string> currentToken;
-
 
     return 0;
 }

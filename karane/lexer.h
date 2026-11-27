@@ -1,26 +1,25 @@
 #ifndef LEXER_H
 #define LEXER_H
+
 #include <string>
+#include <utility>
 #include <vector>
 
+using TokenPair = std::pair<std::string, std::string>;
 
 class Lexer
 {
 public:
-    std::vector<std::pair<std::string , std::string >> tokens;
-
+    std::vector<TokenPair> tokens;
     std::string text;
-    int pos;
+    size_t pos;
     char currentChar;
 
-
-    // Constructor
-    Lexer(std::string Text);
+    explicit Lexer(std::string Text);
     void advance();
     void makeTokens();
     void makeNumber();
-    void toString();
-
+    void toString() const;
 };
 
 #endif // LEXER_H
